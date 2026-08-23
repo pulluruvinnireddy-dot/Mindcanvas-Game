@@ -1,0 +1,1050 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>MindCanvas — Memory Games</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&family=Nunito:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --pink:#b5622f; --blue:#8a5a3a; --yellow:#e8b98a; --green:#6b8e4e;
+    --purple:#5c3a21; --orange:#d99a72; --ink:#3b2415; --bg:#2b1810;
+    --red:#b6452c;
+    --umber:#2b1810; --umber-dark:#180d07; --leather:#4a2c17;
+    --skin-light:#f3ddb8; --skin:#e8b98a; --skin-deep:#d99a72;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: 'Nunito', system-ui, sans-serif;
+    color: var(--skin-light);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 26px 12px 60px;
+    position: relative;
+    overflow-x: hidden;
+    background:
+      radial-gradient(circle at 15% 10%, rgba(217,154,114,0.18), transparent 45%),
+      radial-gradient(circle at 85% 85%, rgba(233,185,138,0.1), transparent 45%),
+      linear-gradient(160deg, var(--umber) 0%, var(--umber-dark) 100%);
+  }
+  body::before, body::after {
+    content: ""; position: fixed; border-radius: 50%; z-index: 0; filter: blur(2px); opacity: 0.28;
+  }
+  body::before { width: 340px; height: 340px; background: var(--skin-deep); top: -140px; left: -120px; }
+  body::after { width: 300px; height: 300px; background: var(--leather); bottom: -120px; right: -100px; }
+  .topbar { position: relative; z-index: 1; display: flex; align-items: center; gap: 14px; margin-bottom: 4px; }
+  h1 {
+    font-family: 'Fredoka', sans-serif;
+    margin: 0;
+    font-size: 32px;
+    color: var(--skin-light);
+  }
+  .sub { opacity: 0.7; margin: 4px 0 22px; font-size: 14px; position: relative; z-index: 1; font-weight: 700; }
+  .homebtn {
+    font-family: 'Fredoka', sans-serif;
+    font-weight: 600;
+    font-size: 13px;
+    background: #fff;
+    border: 3px solid var(--ink);
+    border-radius: 30px;
+    padding: 8px 16px;
+    cursor: pointer;
+    box-shadow: 3px 3px 0 var(--ink);
+  }
+  .homebtn:hover { transform: translate(-1px,-1px); box-shadow: 4px 4px 0 var(--ink); }
+  .card {
+    background: linear-gradient(165deg, var(--skin-light), var(--skin-deep));
+    border: 4px solid var(--leather);
+    box-shadow: 8px 8px 0 var(--leather);
+    border-radius: 22px;
+    padding: 26px;
+    width: 100%;
+    max-width: 660px;
+    text-align: center;
+    position: relative;
+    z-index: 1;
+    color: var(--ink);
+  }
+  .card p { margin: 6px 0 14px; font-weight: 700; color: var(--ink); }
+  select, input {
+    font-family: 'Nunito', sans-serif;
+    font-weight: 700;
+    font-size: 15px;
+    padding: 9px 14px;
+    border-radius: 10px;
+    border: 3px solid var(--ink);
+    background: #fff;
+    color: var(--ink);
+    margin: 6px;
+  }
+  button {
+    font-family: 'Fredoka', sans-serif;
+    font-weight: 600;
+    font-size: 15px;
+    padding: 11px 22px;
+    border-radius: 14px;
+    border: 3px solid var(--ink);
+    cursor: pointer;
+    margin: 6px;
+    background: var(--yellow);
+    color: var(--ink);
+    box-shadow: 4px 4px 0 var(--ink);
+    transition: transform .1s, box-shadow .1s;
+  }
+  button:hover { transform: translate(-2px,-2px); box-shadow: 6px 6px 0 var(--ink); }
+  button:active { transform: translate(1px,1px); box-shadow: 2px 2px 0 var(--ink); }
+  button:disabled { opacity: 0.4; cursor: not-allowed; }
+  button.pink { background: var(--pink); color: #fff; }
+  button.blue { background: var(--blue); color: #fff; }
+  button.green { background: var(--green); }
+  button.ghost { background: #fff; }
+
+  .hub-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; margin-top: 10px; }
+  .game-card {
+    border: 4px solid var(--ink);
+    border-radius: 20px;
+    padding: 20px;
+    text-align: left;
+    box-shadow: 6px 6px 0 var(--ink);
+    transition: transform .12s;
+    cursor: pointer;
+  }
+  .game-card:hover { transform: translate(-2px,-4px); }
+  .game-card.sketch { background: linear-gradient(160deg, var(--pink), var(--orange)); color: #fff; }
+  .game-card.numnerve { background: linear-gradient(160deg, var(--blue), var(--purple)); color: #fff; }
+  .game-card.puzzle { background: linear-gradient(160deg, #c1652f, #8f4a22); color: #fff; }
+  .game-card.sentence { background: linear-gradient(160deg, #7a4a26, #4a2c17); color: #fff; }
+  .game-card h3 { font-family: 'Fredoka', sans-serif; font-size: 22px; margin: 8px 0 6px; }
+  .game-card p { font-weight: 700; opacity: 0.95; font-size: 14px; margin: 0 0 14px; }
+  .game-emoji { font-size: 40px; }
+
+  .word {
+    font-family: 'Fredoka', sans-serif;
+    font-size: 44px;
+    font-weight: 700;
+    margin: 14px 0 10px;
+    color: var(--pink);
+  }
+  .timerbar { height: 10px; background: #eee; border-radius: 6px; overflow: hidden; margin: 10px 0 18px; border: 2px solid var(--ink); }
+  .timerfill { height: 100%; background: linear-gradient(90deg, var(--pink), var(--orange)); width: 100%; transition: width .1s linear; }
+  canvas { background: #fff; border-radius: 14px; border: 4px solid var(--ink); touch-action: none; cursor: crosshair; max-width: 100%; }
+  .toolbar { margin: 12px 0; display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; }
+  .roundinfo { font-size: 13px; opacity: 0.7; margin-bottom: 4px; letter-spacing: .4px; text-transform: uppercase; font-weight: 800; }
+  .level-badge {
+    display: inline-block; background: var(--ink); color: #fff; font-family:'Fredoka',sans-serif;
+    font-size: 13px; font-weight: 600; padding: 5px 14px; border-radius: 20px; margin-bottom: 10px;
+  }
+  .recall-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 14px; margin-top: 16px; }
+  .recall-item { background: #fff; border: 3px solid var(--ink); border-radius: 14px; padding: 10px; }
+  .recall-item img { width: 100%; border-radius: 10px; background: #fff; border: 2px solid #eee; }
+  .recall-item input { width: 100%; margin-top: 8px; text-align: center; }
+  .result-correct { box-shadow: 0 0 0 3px var(--green) inset; }
+  .result-close { box-shadow: 0 0 0 3px var(--yellow) inset; }
+  .result-wrong { box-shadow: 0 0 0 3px var(--red) inset; }
+  .tag { display: inline-block; font-family:'Fredoka',sans-serif; font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 10px; margin-top: 6px; }
+  .tag-correct { background: rgba(107,203,119,0.25); color: #2d7a3c; }
+  .tag-close { background: rgba(255,217,61,0.35); color: #8a6d00; }
+  .tag-wrong { background: rgba(255,77,77,0.2); color: #b32424; }
+
+  .confetti-wrap { position: relative; height: 70px; margin-bottom: -10px; }
+  .confetti-wrap span { position: absolute; font-size: 26px; animation: pop .6s ease-out forwards; }
+  @keyframes pop { from { transform: translateY(10px) scale(0.4) rotate(0deg); opacity: 0; } to { transform: translateY(-10px) scale(1) rotate(20deg); opacity: 1; } }
+  .congrats-title { font-family: 'Fredoka', sans-serif; font-size: 30px; color: var(--pink); margin: 0 0 4px; }
+  .congrats-sub { font-weight: 800; opacity: 0.8; margin-bottom: 16px; }
+
+  .score { font-family: 'Fredoka', sans-serif; font-size: 26px; font-weight: 700; margin: 4px 0; color: var(--purple); }
+  .scoresub { font-size: 13px; opacity: 0.7; margin-bottom: 10px; font-weight: 700; }
+  .hint { font-size: 12px; opacity: 0.75; margin-top: 4px; font-weight: 700; }
+
+  .digit-display {
+    font-family: 'Fredoka', sans-serif;
+    font-size: 76px;
+    font-weight: 700;
+    color: var(--purple);
+    background: #fbe9d0;
+    border: 4px solid var(--ink);
+    border-radius: 20px;
+    width: 160px;
+    height: 140px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 14px auto;
+  }
+  .seq-row { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; margin: 10px 0; }
+  .seq-box {
+    width: 42px; height: 52px; border: 3px solid var(--ink); border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Fredoka', sans-serif; font-size: 22px; font-weight: 700; background: #fff;
+  }
+  .seq-box.match { background: rgba(107,203,119,0.35); }
+  .seq-box.miss { background: rgba(255,77,77,0.25); }
+  .seq-label { font-size: 12px; font-weight: 800; opacity: 0.6; margin-top: 10px; text-transform: uppercase; letter-spacing: .5px; }
+
+  .scramble-display {
+    font-family: 'Fredoka', sans-serif;
+    font-size: 40px;
+    font-weight: 700;
+    letter-spacing: 8px;
+    color: #c1652f;
+    background: #fbe9d0;
+    border: 4px solid var(--ink);
+    border-radius: 18px;
+    padding: 18px 20px;
+    margin: 14px auto;
+    display: inline-block;
+  }
+  .sentence-display {
+    font-size: 22px;
+    font-weight: 700;
+    line-height: 1.6;
+    margin: 16px 0;
+    padding: 16px;
+    background: #fbe9d0;
+    border: 3px dashed var(--ink);
+    border-radius: 14px;
+  }
+  .sentence-blank {
+    display: inline-block;
+    min-width: 90px;
+    border-bottom: 3px solid #4a2c17;
+    color: transparent;
+    user-select: none;
+  }
+  .sentence-highlight {
+    color: #7a4a26;
+    text-decoration: underline;
+    text-decoration-color: #c1652f;
+    text-decoration-thickness: 3px;
+    text-underline-offset: 4px;
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <svg width="38" height="38" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="24" cy="24" r="22" fill="#e8b98a" stroke="#3b2415" stroke-width="3"/>
+    <path d="M14 30 L28 16 L33 21 L19 35" fill="#b5622f" stroke="#3b2415" stroke-width="2.5" stroke-linejoin="round"/>
+  </svg>
+  <h1>MindCanvas</h1>
+  <button class="homebtn" id="globalHomeBtn" style="display:none;">🏠 Games</button>
+</div>
+<div class="sub">bite-sized memory games</div>
+
+<div class="card" id="app"></div>
+
+<script>
+/* ===================== shared ===================== */
+const appTop = { mode: "hub" };
+
+function goHub() {
+  appTop.mode = "hub";
+  clearAllTimers();
+  render();
+}
+document.getElementById("globalHomeBtn").onclick = goHub;
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function editDistance(a, b) {
+  a = a.toLowerCase(); b = b.toLowerCase();
+  const m = a.length, n = b.length;
+  if (m === 0) return n;
+  if (n === 0) return m;
+  const dp = Array.from({length: m + 1}, () => new Array(n + 1).fill(0));
+  for (let i = 0; i <= m; i++) dp[i][0] = i;
+  for (let j = 0; j <= n; j++) dp[0][j] = j;
+  for (let i = 1; i <= m; i++) {
+    for (let j = 1; j <= n; j++) {
+      const cost = a[i-1] === b[j-1] ? 0 : 1;
+      dp[i][j] = Math.min(dp[i-1][j] + 1, dp[i][j-1] + 1, dp[i-1][j-1] + cost);
+    }
+  }
+  return dp[m][n];
+}
+function classifyWord(guess, correct) {
+  const g = guess.trim().toLowerCase();
+  const c = correct.trim().toLowerCase();
+  if (!g) return "wrong";
+  if (g === c) return "correct";
+  const dist = editDistance(g, c);
+  if (dist <= 2 && dist < c.length) return "close";
+  return "wrong";
+}
+
+function confettiHTML() {
+  const emojis = ["🎉","✨","🎊","⭐","🥳"];
+  let s = "";
+  emojis.forEach((e, i) => {
+    s += `<span style="left:${10 + i*18}%; animation-delay:${i*0.07}s;">${e}</span>`;
+  });
+  return `<div class="confetti-wrap">${s}</div>`;
+}
+
+function clearAllTimers() {
+  if (window._sketchTimer) clearInterval(window._sketchTimer);
+  if (window._nnTimer) clearInterval(window._nnTimer);
+  if (window._puzzleTimer) clearInterval(window._puzzleTimer);
+  if (window._sentTimer) clearInterval(window._sentTimer);
+}
+
+const app = document.getElementById("app");
+
+function render() {
+  document.getElementById("globalHomeBtn").style.display = appTop.mode === "hub" ? "none" : "inline-block";
+  if (appTop.mode === "hub") renderHub();
+  else if (appTop.mode === "sketch") renderSketch();
+  else if (appTop.mode === "numnerve") renderNumNerve();
+  else if (appTop.mode === "puzzle") renderPuzzle();
+  else if (appTop.mode === "sentence") renderSentence();
+}
+
+/* ===================== hub ===================== */
+function renderHub() {
+  app.innerHTML = `
+    <div class="hub-grid">
+      <div class="game-card sketch" id="cardSketch">
+        <div class="game-emoji">🖍️</div>
+        <h3>Sketch &amp; Recall</h3>
+        <p>A word flashes, you draw it fast, then recall every word from your own doodles.</p>
+        <button class="pink" id="playSketch">Play ▶</button>
+      </div>
+      <div class="game-card numnerve" id="cardNN">
+        <div class="game-emoji">🔢</div>
+        <h3>Number Nerve</h3>
+        <p>A digit sequence flashes one at a time — memorize it and type it back before it fades from memory.</p>
+        <button class="blue" id="playNN">Play ▶</button>
+      </div>
+      <div class="game-card puzzle" id="cardPuzzle">
+        <div class="game-emoji">🧩</div>
+        <h3>Word Puzzle</h3>
+        <p>Words flash one by one, then come back scrambled — unscramble each one from memory.</p>
+        <button class="pink" id="playPuzzle" style="background:#c1652f;">Play ▶</button>
+      </div>
+      <div class="game-card sentence" id="cardSentence">
+        <div class="game-emoji">✍️</div>
+        <h3>Sentence Formation</h3>
+        <p>Sentences flash with a key word underlined — they come back with a blank line. Type the missing word.</p>
+        <button class="pink" id="playSentence" style="background:#7a4a26;">Play ▶</button>
+      </div>
+    </div>
+  `;
+  document.getElementById("playSketch").onclick = () => { appTop.mode = "sketch"; render(); };
+  document.getElementById("playNN").onclick = () => { appTop.mode = "numnerve"; render(); };
+  document.getElementById("playPuzzle").onclick = () => { appTop.mode = "puzzle"; render(); };
+  document.getElementById("playSentence").onclick = () => { appTop.mode = "sentence"; render(); };
+}
+
+/* ===================== game 1: sketch & recall ===================== */
+const WORD_BANK = [
+  "cat","house","tree","sun","car","fish","star","cloud","boat","flower",
+  "shoe","clock","book","cup","umbrella","banana","bicycle","chair","key","moon",
+  "snake","guitar","glasses","hat","ice cream","kite","ladder","mountain","pizza","rainbow",
+  "spider","train","volcano","whale","robot","castle","dragon","anchor","penguin","cactus"
+];
+
+function freshSketchState() {
+  return {
+    screen: "setup", level: 1, baseNumWords: 6, baseDrawTime: 10,
+    numWords: 6, drawTime: 10, words: [], drawings: [], currentIndex: 0,
+    timeLeft: 0, score: 0, closeCount: 0, recallOrder: [], recallAnswers: []
+  };
+}
+let sketchState = freshSketchState();
+let sketchCanvas, sketchCtx, sketchDrawing = false, sketchLast = null;
+
+function renderSketch() {
+  if (sketchState.screen === "setup") renderSketchSetup();
+  else if (sketchState.screen === "draw") renderSketchDraw();
+  else if (sketchState.screen === "recall") renderSketchRecall();
+  else if (sketchState.screen === "results") renderSketchResults();
+}
+
+const SKETCHBOOK_ICON = `
+<svg width="110" viewBox="0 0 120 90" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin:4px auto 10px; display:block;">
+  <rect x="14" y="16" width="70" height="58" rx="4" fill="#e8b98a" stroke="#3b2415" stroke-width="2.5" transform="rotate(-6 49 45)"/>
+  <rect x="26" y="10" width="70" height="58" rx="4" fill="#fff" stroke="#3b2415" stroke-width="2.5"/>
+  <line x1="34" y1="24" x2="86" y2="24" stroke="#b5622f" stroke-width="2"/>
+  <line x1="34" y1="34" x2="80" y2="34" stroke="#b5622f" stroke-width="2"/>
+  <line x1="34" y1="44" x2="72" y2="44" stroke="#b5622f" stroke-width="2"/>
+  <circle cx="98" cy="60" r="10" fill="#8a5a3a" stroke="#3b2415" stroke-width="2"/>
+</svg>`;
+
+function renderSketchSetup() {
+  app.innerHTML = `
+    ${SKETCHBOOK_ICON}
+    <p>Pick how many words and how much time per drawing.<br>Every level after this gets a little harder.</p>
+    <div>
+      <label>Words: </label>
+      <select id="numWords">${[4,6,8,10].map(n => `<option value="${n}" ${n===sketchState.baseNumWords?'selected':''}>${n}</option>`).join("")}</select>
+      <label>Seconds: </label>
+      <select id="drawTime">${[15,10,7,5].map(n => `<option value="${n}" ${n===sketchState.baseDrawTime?'selected':''}>${n}s</option>`).join("")}</select>
+    </div>
+    <button class="pink" id="startBtn">Start Sketching ▶</button>
+  `;
+  document.getElementById("startBtn").onclick = () => {
+    sketchState.baseNumWords = parseInt(document.getElementById("numWords").value);
+    sketchState.baseDrawTime = parseInt(document.getElementById("drawTime").value);
+    sketchState.level = 1;
+    beginSketchLevel();
+  };
+}
+
+function beginSketchLevel() {
+  sketchState.numWords = Math.min(WORD_BANK.length, sketchState.baseNumWords + (sketchState.level - 1));
+  sketchState.drawTime = Math.max(4, sketchState.baseDrawTime - (sketchState.level - 1));
+  sketchState.words = shuffle(WORD_BANK).slice(0, sketchState.numWords);
+  sketchState.drawings = [];
+  sketchState.currentIndex = 0;
+  sketchState.screen = "draw";
+  render();
+}
+
+function renderSketchDraw() {
+  const word = sketchState.words[sketchState.currentIndex];
+  app.innerHTML = `
+    <div class="level-badge">Level ${sketchState.level}</div>
+    <div class="roundinfo">Round ${sketchState.currentIndex + 1} / ${sketchState.words.length}</div>
+    <div class="word">${word}</div>
+    <div class="timerbar"><div class="timerfill" id="timerfill"></div></div>
+    <canvas id="canvas" width="480" height="320"></canvas>
+    <div class="toolbar">
+      <button class="ghost" id="clearBtn">Clear</button>
+      <button class="pink" id="nextBtn">Next ▶</button>
+    </div>
+  `;
+  sketchCanvas = document.getElementById("canvas");
+  sketchCtx = sketchCanvas.getContext("2d");
+  sketchCtx.fillStyle = "#fff";
+  sketchCtx.fillRect(0, 0, sketchCanvas.width, sketchCanvas.height);
+  sketchCtx.lineWidth = 4;
+  sketchCtx.lineCap = "round";
+  sketchCtx.strokeStyle = "#3b2415";
+
+  function pos(e) {
+    const rect = sketchCanvas.getBoundingClientRect();
+    const cx = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
+    const cy = (e.touches ? e.touches[0].clientY : e.clientY) - rect.top;
+    return { x: cx * (sketchCanvas.width / rect.width), y: cy * (sketchCanvas.height / rect.height) };
+  }
+  function start(e) { sketchDrawing = true; sketchLast = pos(e); e.preventDefault(); }
+  function move(e) {
+    if (!sketchDrawing) return;
+    const p = pos(e);
+    sketchCtx.beginPath(); sketchCtx.moveTo(sketchLast.x, sketchLast.y); sketchCtx.lineTo(p.x, p.y); sketchCtx.stroke();
+    sketchLast = p; e.preventDefault();
+  }
+  function end() { sketchDrawing = false; }
+  sketchCanvas.addEventListener("mousedown", start);
+  sketchCanvas.addEventListener("mousemove", move);
+  window.addEventListener("mouseup", end);
+  sketchCanvas.addEventListener("touchstart", start, { passive: false });
+  sketchCanvas.addEventListener("touchmove", move, { passive: false });
+  sketchCanvas.addEventListener("touchend", end);
+
+  document.getElementById("clearBtn").onclick = () => {
+    sketchCtx.fillStyle = "#fff"; sketchCtx.fillRect(0, 0, sketchCanvas.width, sketchCanvas.height);
+  };
+  document.getElementById("nextBtn").onclick = () => advanceSketchRound();
+
+  sketchState.timeLeft = sketchState.drawTime;
+  const fill = document.getElementById("timerfill");
+  fill.style.width = "100%";
+  clearInterval(window._sketchTimer);
+  window._sketchTimer = setInterval(() => {
+    sketchState.timeLeft -= 0.1;
+    const pct = Math.max(0, (sketchState.timeLeft / sketchState.drawTime) * 100);
+    fill.style.width = pct + "%";
+    if (sketchState.timeLeft <= 0) { clearInterval(window._sketchTimer); advanceSketchRound(); }
+  }, 100);
+}
+
+function advanceSketchRound() {
+  clearInterval(window._sketchTimer);
+  const dataUrl = sketchCanvas.toDataURL();
+  sketchState.drawings.push({ word: sketchState.words[sketchState.currentIndex], dataUrl });
+  sketchState.currentIndex++;
+  if (sketchState.currentIndex < sketchState.words.length) {
+    renderSketchDraw();
+  } else {
+    sketchState.recallOrder = shuffle(sketchState.drawings);
+    sketchState.recallAnswers = new Array(sketchState.recallOrder.length).fill("");
+    sketchState.screen = "recall";
+    render();
+  }
+}
+
+const BRAIN_ICON = `
+<svg width="56" height="42" viewBox="0 0 60 46" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-bottom:6px;">
+  <path d="M20 8c-6 0-10 4-10 9 0 2 1 3 1 3-3 1-5 4-5 7 0 4 3 7 7 7h1c1 3 4 5 7 5h10c3 0 6-2 7-5h1c4 0 7-3 7-7 0-3-2-6-5-7 0 0 1-1 1-3 0-5-4-9-10-9-2 0-4 1-6 2-2-1-4-2-6-2z"
+    fill="#e8b98a" stroke="#3b2415" stroke-width="2"/>
+  <path d="M30 10v29M22 15c3 1 4 3 4 6M38 15c-3 1-4 3-4 6" stroke="#b5622f" stroke-width="1.6" fill="none"/>
+</svg>`;
+
+function renderSketchRecall() {
+  app.innerHTML = `
+    <div class="level-badge">Level ${sketchState.level}</div>
+    ${BRAIN_ICON}
+    <p>Type the word each drawing was meant to be!</p>
+    <div class="recall-grid" id="grid"></div>
+    <button class="pink" id="submitBtn" style="margin-top:16px;">Submit Answers ✅</button>
+  `;
+  const grid = document.getElementById("grid");
+  sketchState.recallOrder.forEach((d, i) => {
+    const div = document.createElement("div");
+    div.className = "recall-item";
+    div.innerHTML = `<img src="${d.dataUrl}" alt="drawing ${i}"><input type="text" placeholder="Your guess" data-idx="${i}">`;
+    grid.appendChild(div);
+  });
+  document.getElementById("submitBtn").onclick = () => {
+    const inputs = grid.querySelectorAll("input");
+    let score = 0, closeCount = 0;
+    inputs.forEach(inp => {
+      const idx = parseInt(inp.dataset.idx);
+      sketchState.recallAnswers[idx] = inp.value.trim();
+      const verdict = classifyWord(inp.value, sketchState.recallOrder[idx].word);
+      if (verdict === "correct") score++;
+      if (verdict === "close") closeCount++;
+    });
+    sketchState.score = score; sketchState.closeCount = closeCount;
+    sketchState.screen = "results";
+    render();
+  };
+}
+
+function renderSketchResults() {
+  const total = sketchState.recallOrder.length;
+  app.innerHTML = `
+    ${confettiHTML()}
+    <div class="congrats-title">Congratulations! 🎉</div>
+    <div class="congrats-sub">Level ${sketchState.level} complete</div>
+    <div class="score">${sketchState.score} / ${total} correct</div>
+    <div class="scoresub">${sketchState.closeCount} close call${sketchState.closeCount === 1 ? '' : 's'} (right idea, spelling slip)</div>
+    <div class="recall-grid" id="resGrid"></div>
+    <div class="toolbar" style="margin-top:18px;">
+      <button class="pink" id="nextLevelBtn">Continue to Level ${sketchState.level + 1} ▶</button>
+      <button class="ghost" id="restartBtn">Restart</button>
+    </div>
+  `;
+  const grid = document.getElementById("resGrid");
+  sketchState.recallOrder.forEach((d, i) => {
+    const verdict = classifyWord(sketchState.recallAnswers[i], d.word);
+    const cls = verdict === "correct" ? "result-correct" : verdict === "close" ? "result-close" : "result-wrong";
+    const tagCls = verdict === "correct" ? "tag-correct" : verdict === "close" ? "tag-close" : "tag-wrong";
+    const tagText = verdict === "correct" ? "Correct" : verdict === "close" ? "Close — spelling slip" : "Wrong word";
+    const div = document.createElement("div");
+    div.className = "recall-item " + cls;
+    div.innerHTML = `
+      <img src="${d.dataUrl}" alt="drawing ${i}">
+      <div class="hint">You wrote: ${sketchState.recallAnswers[i] || "(blank)"}</div>
+      <div class="hint">Answer: <b>${d.word}</b></div>
+      <span class="tag ${tagCls}">${tagText}</span>
+    `;
+    grid.appendChild(div);
+  });
+  document.getElementById("nextLevelBtn").onclick = () => { sketchState.level++; beginSketchLevel(); };
+  document.getElementById("restartBtn").onclick = () => { sketchState = freshSketchState(); render(); };
+}
+
+/* ===================== game 2: number nerve ===================== */
+function freshNNState() {
+  return {
+    screen: "intro", level: 1, baseLength: 3, length: 3,
+    sequence: [], shownIndex: -1, guess: "", verdict: null
+  };
+}
+let nnState = freshNNState();
+
+const NUMBERS_ICON = `
+<svg width="100" viewBox="0 0 120 90" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin:4px auto 10px; display:block;">
+  <rect x="14" y="20" width="40" height="50" rx="8" fill="#8a5a3a" stroke="#3b2415" stroke-width="2.5"/>
+  <rect x="66" y="20" width="40" height="50" rx="8" fill="#5c3a21" stroke="#3b2415" stroke-width="2.5"/>
+  <text x="34" y="54" text-anchor="middle" font-family="Fredoka" font-size="26" fill="#fff" font-weight="700">7</text>
+  <text x="86" y="54" text-anchor="middle" font-family="Fredoka" font-size="26" fill="#fff" font-weight="700">2</text>
+</svg>`;
+
+function renderNumNerve() {
+  if (nnState.screen === "intro") renderNNIntro();
+  else if (nnState.screen === "show") renderNNShow();
+  else if (nnState.screen === "input") renderNNInput();
+  else if (nnState.screen === "results") renderNNResults();
+}
+
+function renderNNIntro() {
+  app.innerHTML = `
+    ${NUMBERS_ICON}
+    <p>Watch the digits flash one at a time, then type the full sequence from memory.<br>Each level adds one more digit.</p>
+    <div>
+      <label>Starting length: </label>
+      <select id="baseLen">${[3,4,5,6].map(n => `<option value="${n}" ${n===nnState.baseLength?'selected':''}>${n} digits</option>`).join("")}</select>
+    </div>
+    <button class="blue" id="startNN">Start ▶</button>
+  `;
+  document.getElementById("startNN").onclick = () => {
+    nnState.baseLength = parseInt(document.getElementById("baseLen").value);
+    nnState.level = 1;
+    beginNNLevel();
+  };
+}
+
+function beginNNLevel() {
+  nnState.length = Math.min(14, nnState.baseLength + (nnState.level - 1));
+  nnState.sequence = Array.from({length: nnState.length}, () => Math.floor(Math.random() * 10));
+  nnState.shownIndex = -1;
+  nnState.screen = "show";
+  render();
+}
+
+function renderNNShow() {
+  app.innerHTML = `
+    <div class="level-badge">Level ${nnState.level}</div>
+    <p>Memorize this sequence!</p>
+    <div class="digit-display" id="digitBox">•</div>
+    <div class="seq-label">digit <span id="pos">0</span> / ${nnState.sequence.length}</div>
+  `;
+  const box = document.getElementById("digitBox");
+  const posLabel = document.getElementById("pos");
+  clearInterval(window._nnTimer);
+  nnState.shownIndex = -1;
+  window._nnTimer = setInterval(() => {
+    nnState.shownIndex++;
+    if (nnState.shownIndex >= nnState.sequence.length) {
+      clearInterval(window._nnTimer);
+      nnState.screen = "input";
+      render();
+      return;
+    }
+    box.textContent = nnState.sequence[nnState.shownIndex];
+    posLabel.textContent = nnState.shownIndex + 1;
+  }, 850);
+}
+
+function renderNNInput() {
+  app.innerHTML = `
+    <div class="level-badge">Level ${nnState.level}</div>
+    <p>Type the ${nnState.sequence.length}-digit sequence you just saw:</p>
+    <input type="text" id="guessInput" inputmode="numeric" placeholder="e.g. 4 9 1 2" style="font-size:22px; text-align:center; letter-spacing:4px; width:220px;">
+    <div><button class="blue" id="submitNN" style="margin-top:12px;">Submit ✅</button></div>
+  `;
+  const input = document.getElementById("guessInput");
+  input.focus();
+  input.addEventListener("input", () => { input.value = input.value.replace(/[^0-9]/g, ""); });
+  document.getElementById("submitNN").onclick = () => submitNN(input.value);
+  input.addEventListener("keydown", (e) => { if (e.key === "Enter") submitNN(input.value); });
+}
+
+function submitNN(guessRaw) {
+  const guessDigits = guessRaw.split("").map(d => parseInt(d));
+  let matches = 0;
+  const maxLen = Math.max(guessDigits.length, nnState.sequence.length);
+  for (let i = 0; i < nnState.sequence.length; i++) {
+    if (guessDigits[i] === nnState.sequence[i]) matches++;
+  }
+  const exact = guessDigits.length === nnState.sequence.length && matches === nnState.sequence.length;
+  const ratio = matches / nnState.sequence.length;
+  nnState.verdict = exact ? "correct" : ratio >= 0.5 ? "close" : "wrong";
+  nnState.guess = guessDigits;
+  nnState.screen = "results";
+  render();
+}
+
+function renderNNResults() {
+  const correctRow = nnState.sequence.map((d, i) => {
+    const hit = nnState.guess[i] === d;
+    return `<div class="seq-box ${hit ? 'match' : 'miss'}">${d}</div>`;
+  }).join("");
+  const guessRow = nnState.sequence.map((d, i) => {
+    const g = nnState.guess[i];
+    const hit = g === d;
+    return `<div class="seq-box ${hit ? 'match' : 'miss'}">${g !== undefined && !isNaN(g) ? g : '·'}</div>`;
+  }).join("");
+
+  const isWin = nnState.verdict === "correct";
+  const tagCls = nnState.verdict === "correct" ? "tag-correct" : nnState.verdict === "close" ? "tag-close" : "tag-wrong";
+  const tagText = nnState.verdict === "correct" ? "Correct!" : nnState.verdict === "close" ? "Close — a digit or two off" : "Way off";
+
+  app.innerHTML = `
+    ${isWin ? confettiHTML() : ""}
+    <div class="congrats-title">${isWin ? "Congratulations! 🎉" : "Nice try!"}</div>
+    <div class="congrats-sub">${isWin ? `Level ${nnState.level} complete` : `Level ${nnState.level}`}</div>
+    <span class="tag ${tagCls}" style="margin-bottom:10px;">${tagText}</span>
+    <div class="seq-label">Correct sequence</div>
+    <div class="seq-row">${correctRow}</div>
+    <div class="seq-label">Your answer</div>
+    <div class="seq-row">${guessRow}</div>
+    <div class="toolbar" style="margin-top:18px;">
+      ${isWin
+        ? `<button class="blue" id="nextLevelBtn">Continue to Level ${nnState.level + 1} ▶</button>`
+        : `<button class="blue" id="retryBtn">Retry Level ${nnState.level} ▶</button>`}
+      <button class="ghost" id="restartNNBtn">Restart</button>
+    </div>
+  `;
+  if (isWin) {
+    document.getElementById("nextLevelBtn").onclick = () => { nnState.level++; beginNNLevel(); };
+  } else {
+    document.getElementById("retryBtn").onclick = () => beginNNLevel();
+  }
+  document.getElementById("restartNNBtn").onclick = () => { nnState = freshNNState(); render(); };
+}
+
+/* ===================== game 3: word puzzle ===================== */
+function scrambleWord(word) {
+  if (word.length <= 1) return word;
+  let letters, attempt = 0;
+  do {
+    letters = shuffle(word.split(""));
+    attempt++;
+  } while (letters.join("") === word && attempt < 10);
+  return letters.join("");
+}
+
+function freshPuzzleState() {
+  return {
+    screen: "setup", level: 1, baseNumWords: 6, baseFlashTime: 3,
+    numWords: 6, flashTime: 3, words: [], currentIndex: 0,
+    recallOrder: [], recallAnswers: [], score: 0, closeCount: 0
+  };
+}
+let puzzleState = freshPuzzleState();
+
+const PUZZLE_ICON = `
+<svg width="100" viewBox="0 0 120 90" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin:4px auto 10px; display:block;">
+  <rect x="16" y="18" width="36" height="36" rx="6" fill="#c1652f" stroke="#3b2415" stroke-width="2.5"/>
+  <rect x="56" y="18" width="36" height="36" rx="6" fill="#8f4a22" stroke="#3b2415" stroke-width="2.5" transform="rotate(8 74 36)"/>
+  <rect x="16" y="56" width="36" height="20" rx="6" fill="#e8b98a" stroke="#3b2415" stroke-width="2.5"/>
+  <text x="34" y="42" text-anchor="middle" font-family="Fredoka" font-size="20" fill="#fff" font-weight="700">A</text>
+  <text x="74" y="40" text-anchor="middle" font-family="Fredoka" font-size="20" fill="#fff" font-weight="700">B</text>
+</svg>`;
+
+function renderPuzzle() {
+  if (puzzleState.screen === "setup") renderPuzzleSetup();
+  else if (puzzleState.screen === "flash") renderPuzzleFlash();
+  else if (puzzleState.screen === "recall") renderPuzzleRecall();
+  else if (puzzleState.screen === "results") renderPuzzleResults();
+}
+
+function renderPuzzleSetup() {
+  app.innerHTML = `
+    ${PUZZLE_ICON}
+    <p>Words flash one by one — memorize them. Then they come back scrambled and you type the real word.<br>Each level adds a word and less flash time.</p>
+    <div>
+      <label>Words: </label>
+      <select id="numWords">${[4,6,8,10].map(n => `<option value="${n}" ${n===puzzleState.baseNumWords?'selected':''}>${n}</option>`).join("")}</select>
+      <label>Seconds to view: </label>
+      <select id="flashTime">${[5,3,2].map(n => `<option value="${n}" ${n===puzzleState.baseFlashTime?'selected':''}>${n}s</option>`).join("")}</select>
+    </div>
+    <button id="startPuzzle" style="background:#c1652f; color:#fff;">Start Puzzle ▶</button>
+  `;
+  document.getElementById("startPuzzle").onclick = () => {
+    puzzleState.baseNumWords = parseInt(document.getElementById("numWords").value);
+    puzzleState.baseFlashTime = parseInt(document.getElementById("flashTime").value);
+    puzzleState.level = 1;
+    beginPuzzleLevel();
+  };
+}
+
+function beginPuzzleLevel() {
+  puzzleState.numWords = Math.min(WORD_BANK.length, puzzleState.baseNumWords + (puzzleState.level - 1));
+  puzzleState.flashTime = Math.max(1, puzzleState.baseFlashTime - Math.floor((puzzleState.level - 1) / 2));
+  puzzleState.words = shuffle(WORD_BANK).slice(0, puzzleState.numWords);
+  puzzleState.currentIndex = 0;
+  puzzleState.screen = "flash";
+  render();
+}
+
+function renderPuzzleFlash() {
+  const word = puzzleState.words[puzzleState.currentIndex];
+  app.innerHTML = `
+    <div class="level-badge">Level ${puzzleState.level}</div>
+    <div class="roundinfo">Word ${puzzleState.currentIndex + 1} / ${puzzleState.words.length}</div>
+    <div class="word" style="color:#c1652f;">${word}</div>
+    <div class="timerbar"><div class="timerfill" id="timerfill" style="background:linear-gradient(90deg,#8f4a22,#c1652f);"></div></div>
+  `;
+  let timeLeft = puzzleState.flashTime;
+  const fill = document.getElementById("timerfill");
+  clearInterval(window._puzzleTimer);
+  window._puzzleTimer = setInterval(() => {
+    timeLeft -= 0.1;
+    fill.style.width = Math.max(0, (timeLeft / puzzleState.flashTime) * 100) + "%";
+    if (timeLeft <= 0) {
+      clearInterval(window._puzzleTimer);
+      puzzleState.currentIndex++;
+      if (puzzleState.currentIndex < puzzleState.words.length) {
+        renderPuzzleFlash();
+      } else {
+        puzzleState.recallOrder = shuffle(puzzleState.words.map(w => ({ word: w, scrambled: scrambleWord(w) })));
+        puzzleState.recallAnswers = new Array(puzzleState.recallOrder.length).fill("");
+        puzzleState.screen = "recall";
+        render();
+      }
+    }
+  }, 100);
+}
+
+function renderPuzzleRecall() {
+  app.innerHTML = `
+    <div class="level-badge">Level ${puzzleState.level}</div>
+    <p>Unscramble each word from memory!</p>
+    <div class="recall-grid" id="grid"></div>
+    <button id="submitPuzzle" style="margin-top:16px; background:#c1652f; color:#fff;">Submit Answers ✅</button>
+  `;
+  const grid = document.getElementById("grid");
+  puzzleState.recallOrder.forEach((d, i) => {
+    const div = document.createElement("div");
+    div.className = "recall-item";
+    div.innerHTML = `
+      <div class="scramble-display" style="font-size:26px; padding:14px 10px;">${d.scrambled.toUpperCase()}</div>
+      <input type="text" placeholder="Your guess" data-idx="${i}">
+    `;
+    grid.appendChild(div);
+  });
+  document.getElementById("submitPuzzle").onclick = () => {
+    const inputs = grid.querySelectorAll("input");
+    let score = 0, closeCount = 0;
+    inputs.forEach(inp => {
+      const idx = parseInt(inp.dataset.idx);
+      puzzleState.recallAnswers[idx] = inp.value.trim();
+      const verdict = classifyWord(inp.value, puzzleState.recallOrder[idx].word);
+      if (verdict === "correct") score++;
+      if (verdict === "close") closeCount++;
+    });
+    puzzleState.score = score; puzzleState.closeCount = closeCount;
+    puzzleState.screen = "results";
+    render();
+  };
+}
+
+function renderPuzzleResults() {
+  const total = puzzleState.recallOrder.length;
+  app.innerHTML = `
+    ${confettiHTML()}
+    <div class="congrats-title" style="color:#c1652f;">Congratulations! 🎉</div>
+    <div class="congrats-sub">Level ${puzzleState.level} complete</div>
+    <div class="score" style="color:#8f4a22;">${puzzleState.score} / ${total} correct</div>
+    <div class="scoresub">${puzzleState.closeCount} close call${puzzleState.closeCount === 1 ? '' : 's'} (right idea, spelling slip)</div>
+    <div class="recall-grid" id="resGrid"></div>
+    <div class="toolbar" style="margin-top:18px;">
+      <button id="nextLevelBtn" style="background:#c1652f; color:#fff;">Continue to Level ${puzzleState.level + 1} ▶</button>
+      <button class="ghost" id="restartBtn">Restart</button>
+    </div>
+  `;
+  const grid = document.getElementById("resGrid");
+  puzzleState.recallOrder.forEach((d, i) => {
+    const verdict = classifyWord(puzzleState.recallAnswers[i], d.word);
+    const cls = verdict === "correct" ? "result-correct" : verdict === "close" ? "result-close" : "result-wrong";
+    const tagCls = verdict === "correct" ? "tag-correct" : verdict === "close" ? "tag-close" : "tag-wrong";
+    const tagText = verdict === "correct" ? "Correct" : verdict === "close" ? "Close — spelling slip" : "Wrong word";
+    const div = document.createElement("div");
+    div.className = "recall-item " + cls;
+    div.innerHTML = `
+      <div class="scramble-display" style="font-size:20px; padding:10px 8px;">${d.scrambled.toUpperCase()}</div>
+      <div class="hint">You wrote: ${puzzleState.recallAnswers[i] || "(blank)"}</div>
+      <div class="hint">Answer: <b>${d.word}</b></div>
+      <span class="tag ${tagCls}">${tagText}</span>
+    `;
+    grid.appendChild(div);
+  });
+  document.getElementById("nextLevelBtn").onclick = () => { puzzleState.level++; beginPuzzleLevel(); };
+  document.getElementById("restartBtn").onclick = () => { puzzleState = freshPuzzleState(); render(); };
+}
+
+/* ===================== game 4: sentence formation ===================== */
+const SENTENCE_BANK = [
+  { sentence: "The cat sat on the mat.", blank: "mat" },
+  { sentence: "She poured a glass of milk.", blank: "milk" },
+  { sentence: "He kicked the ball across the field.", blank: "ball" },
+  { sentence: "The sun rises in the east.", blank: "east" },
+  { sentence: "Birds build their nests in trees.", blank: "trees" },
+  { sentence: "We watched the fireworks light up the sky.", blank: "fireworks" },
+  { sentence: "The baker sells fresh bread every morning.", blank: "bread" },
+  { sentence: "My brother forgot his umbrella at home.", blank: "umbrella" },
+  { sentence: "The train arrived exactly on time.", blank: "train" },
+  { sentence: "She painted the fence a bright blue.", blank: "blue" },
+  { sentence: "The children built a sandcastle at the beach.", blank: "sandcastle" },
+  { sentence: "He tuned his guitar before the show.", blank: "guitar" },
+  { sentence: "The librarian whispered to keep it quiet.", blank: "quiet" },
+  { sentence: "A rainbow appeared after the storm.", blank: "rainbow" },
+  { sentence: "The chef added extra spice to the soup.", blank: "spice" },
+  { sentence: "The astronaut floated inside the spaceship.", blank: "spaceship" },
+  { sentence: "Grandma knitted a warm woolen sweater.", blank: "sweater" },
+  { sentence: "The mountain was covered in fresh snow.", blank: "snow" },
+  { sentence: "The puppy chased its tail in circles.", blank: "tail" },
+  { sentence: "He planted seeds in the garden.", blank: "seeds" }
+];
+
+function freshSentState() {
+  return {
+    screen: "setup", level: 1, baseNumSent: 4, baseFlashTime: 4,
+    numSent: 4, flashTime: 4, items: [], currentIndex: 0,
+    recallOrder: [], recallAnswers: [], score: 0, closeCount: 0
+  };
+}
+let sentState = freshSentState();
+
+const SENTENCE_ICON = `
+<svg width="110" viewBox="0 0 120 90" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin:4px auto 10px; display:block;">
+  <rect x="14" y="14" width="92" height="62" rx="8" fill="#fbe9d0" stroke="#3b2415" stroke-width="2.5"/>
+  <line x1="26" y1="34" x2="80" y2="34" stroke="#7a4a26" stroke-width="3"/>
+  <line x1="26" y1="46" x2="94" y2="46" stroke="#7a4a26" stroke-width="3"/>
+  <line x1="26" y1="58" x2="62" y2="58" stroke="#c1652f" stroke-width="3"/>
+</svg>`;
+
+function renderSentence() {
+  if (sentState.screen === "setup") renderSentSetup();
+  else if (sentState.screen === "flash") renderSentFlash();
+  else if (sentState.screen === "recall") renderSentRecall();
+  else if (sentState.screen === "results") renderSentResults();
+}
+
+function renderSentSetup() {
+  app.innerHTML = `
+    ${SENTENCE_ICON}
+    <p>Sentences flash one by one with a key word underlined — memorize it.<br>They come back with a blank line where that word was. Type it from memory.</p>
+    <div>
+      <label>Sentences: </label>
+      <select id="numSent">${[3,4,6,8].map(n => `<option value="${n}" ${n===sentState.baseNumSent?'selected':''}>${n}</option>`).join("")}</select>
+      <label>Seconds to view: </label>
+      <select id="flashTime2">${[6,4,3].map(n => `<option value="${n}" ${n===sentState.baseFlashTime?'selected':''}>${n}s</option>`).join("")}</select>
+    </div>
+    <button id="startSent" style="background:#7a4a26; color:#fff;">Start ▶</button>
+  `;
+  document.getElementById("startSent").onclick = () => {
+    sentState.baseNumSent = parseInt(document.getElementById("numSent").value);
+    sentState.baseFlashTime = parseInt(document.getElementById("flashTime2").value);
+    sentState.level = 1;
+    beginSentLevel();
+  };
+}
+
+function beginSentLevel() {
+  sentState.numSent = Math.min(SENTENCE_BANK.length, sentState.baseNumSent + (sentState.level - 1));
+  sentState.flashTime = Math.max(2, sentState.baseFlashTime - Math.floor((sentState.level - 1) / 2));
+  sentState.items = shuffle(SENTENCE_BANK).slice(0, sentState.numSent);
+  sentState.currentIndex = 0;
+  sentState.screen = "flash";
+  render();
+}
+
+function highlightBlank(sentence, blank) {
+  const re = new RegExp("\\b" + blank + "\\b", "i");
+  return sentence.replace(re, `<span class="sentence-highlight">${blank}</span>`);
+}
+function blankOut(sentence, blank) {
+  const re = new RegExp("\\b" + blank + "\\b", "i");
+  return sentence.replace(re, `<span class="sentence-blank">${blank}</span>`);
+}
+
+function renderSentFlash() {
+  const item = sentState.items[sentState.currentIndex];
+  app.innerHTML = `
+    <div class="level-badge">Level ${sentState.level}</div>
+    <div class="roundinfo">Sentence ${sentState.currentIndex + 1} / ${sentState.items.length}</div>
+    <div class="sentence-display">${highlightBlank(item.sentence, item.blank)}</div>
+    <div class="timerbar"><div class="timerfill" id="timerfill" style="background:linear-gradient(90deg,#4a2c17,#7a4a26);"></div></div>
+  `;
+  let timeLeft = sentState.flashTime;
+  const fill = document.getElementById("timerfill");
+  clearInterval(window._sentTimer);
+  window._sentTimer = setInterval(() => {
+    timeLeft -= 0.1;
+    fill.style.width = Math.max(0, (timeLeft / sentState.flashTime) * 100) + "%";
+    if (timeLeft <= 0) {
+      clearInterval(window._sentTimer);
+      sentState.currentIndex++;
+      if (sentState.currentIndex < sentState.items.length) {
+        renderSentFlash();
+      } else {
+        sentState.recallOrder = shuffle(sentState.items);
+        sentState.recallAnswers = new Array(sentState.recallOrder.length).fill("");
+        sentState.screen = "recall";
+        render();
+      }
+    }
+  }, 100);
+}
+
+function renderSentRecall() {
+  app.innerHTML = `
+    <div class="level-badge">Level ${sentState.level}</div>
+    <p>Fill in the blank for each sentence from memory!</p>
+    <div id="sentList" style="text-align:left;"></div>
+    <button id="submitSent" style="margin-top:16px; background:#7a4a26; color:#fff;">Submit Answers ✅</button>
+  `;
+  const list = document.getElementById("sentList");
+  sentState.recallOrder.forEach((item, i) => {
+    const div = document.createElement("div");
+    div.className = "recall-item";
+    div.style.marginBottom = "10px";
+    div.innerHTML = `
+      <div class="sentence-display" style="margin:0 0 8px;">${blankOut(item.sentence, item.blank)}</div>
+      <input type="text" placeholder="Missing word" data-idx="${i}" style="width:100%;">
+    `;
+    list.appendChild(div);
+  });
+  document.getElementById("submitSent").onclick = () => {
+    const inputs = list.querySelectorAll("input");
+    let score = 0, closeCount = 0;
+    inputs.forEach(inp => {
+      const idx = parseInt(inp.dataset.idx);
+      sentState.recallAnswers[idx] = inp.value.trim();
+      const verdict = classifyWord(inp.value, sentState.recallOrder[idx].blank);
+      if (verdict === "correct") score++;
+      if (verdict === "close") closeCount++;
+    });
+    sentState.score = score; sentState.closeCount = closeCount;
+    sentState.screen = "results";
+    render();
+  };
+}
+
+function renderSentResults() {
+  const total = sentState.recallOrder.length;
+  app.innerHTML = `
+    ${confettiHTML()}
+    <div class="congrats-title" style="color:#7a4a26;">Congratulations! 🎉</div>
+    <div class="congrats-sub">Level ${sentState.level} complete</div>
+    <div class="score" style="color:#4a2c17;">${sentState.score} / ${total} correct</div>
+    <div class="scoresub">${sentState.closeCount} close call${sentState.closeCount === 1 ? '' : 's'} (right idea, spelling slip)</div>
+    <div id="resList" style="text-align:left;"></div>
+    <div class="toolbar" style="margin-top:18px;">
+      <button id="nextLevelBtn" style="background:#7a4a26; color:#fff;">Continue to Level ${sentState.level + 1} ▶</button>
+      <button class="ghost" id="restartBtn">Restart</button>
+    </div>
+  `;
+  const list = document.getElementById("resList");
+  sentState.recallOrder.forEach((item, i) => {
+    const verdict = classifyWord(sentState.recallAnswers[i], item.blank);
+    const cls = verdict === "correct" ? "result-correct" : verdict === "close" ? "result-close" : "result-wrong";
+    const tagCls = verdict === "correct" ? "tag-correct" : verdict === "close" ? "tag-close" : "tag-wrong";
+    const tagText = verdict === "correct" ? "Correct" : verdict === "close" ? "Close — spelling slip" : "Wrong word";
+    const div = document.createElement("div");
+    div.className = "recall-item " + cls;
+    div.style.marginBottom = "10px";
+    div.innerHTML = `
+      <div class="sentence-display" style="margin:0 0 8px;">${highlightBlank(item.sentence, item.blank)}</div>
+      <div class="hint">You wrote: ${sentState.recallAnswers[i] || "(blank)"}</div>
+      <div class="hint">Answer: <b>${item.blank}</b></div>
+      <span class="tag ${tagCls}">${tagText}</span>
+    `;
+    list.appendChild(div);
+  });
+  document.getElementById("nextLevelBtn").onclick = () => { sentState.level++; beginSentLevel(); };
+  document.getElementById("restartBtn").onclick = () => { sentState = freshSentState(); render(); };
+}
+
+render();
+</script>
+</body>
+</html>
